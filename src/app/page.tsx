@@ -1,69 +1,100 @@
-import Image from "next/image";
+import { ArticleCard } from "@/components/ArticleCard";
+import { BackToTop } from "@/components/BackToTop";
+import { CategoryBlock } from "@/components/CategoryBlock";
+import { TrendIcon } from "@/components/icons";
+import { LeadStory } from "@/components/LeadStory";
+import { SectionHeading } from "@/components/SectionHeading";
+import { EditorialPanel, MandiRatePanel, PrintEditionPromo } from "@/components/Sidebar";
+import { SuccessStories } from "@/components/SuccessStories";
+import { getHomepageContent } from "@/lib/articles";
+import { site } from "@/lib/site";
 
-export default function Home() {
+export default async function HomePage() {
+  const { lead, topStories, latest, mandiRates, editorials, successStories, sections } =
+    await getHomepageContent();
+
+  if (!lead && latest.length === 0) {
+    return <EmptyState />;
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <h1 className="sr-only">कृषक जगत: कृषि, खेती और किसानों से जुड़े ताज़ा समाचार</h1>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Lead story + top stories */}
+        <section aria-label="प्रमुख समाचार" className="grid gap-8 pt-5 sm:pt-8 lg:grid-cols-12 lg:gap-10 lg:pt-10">
+          {lead && (
+            <div className="lg:col-span-8">
+              <LeadStory article={lead} />
+            </div>
+          )}
+          {topStories.length > 0 && (
+            <div className="lg:col-span-4">
+              <h2 className="flex items-center gap-2 border-b border-line pb-2 text-sm font-semibold text-muted">
+                <TrendIcon className="size-4 text-harvest-600" />
+                प्रमुख खबरें
+              </h2>
+              <ul className="divide-y divide-line md:grid md:grid-cols-2 md:gap-x-8 md:divide-y-0 lg:block lg:divide-y">
+                {topStories.map((a) => (
+                  <li key={a.id} className="md:border-b md:border-line lg:border-0">
+                    <ArticleCard article={a} variant="compact" />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {/* Latest news + sidebar */}
+        <div className="mt-10 grid gap-10 sm:mt-14 lg:grid-cols-12 lg:gap-10">
+          <section aria-labelledby="latest-heading" className="lg:col-span-8">
+            <SectionHeading id="latest-heading" title="ताज़ा खबरें" href={`${site.url}/page/2/`} linkLabel="और खबरें" />
+            <ul className="divide-y divide-line sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-5 sm:divide-y-0 xl:grid-cols-3">
+              {latest.map((a, i) => (
+                // 9 stories fill 3 columns; hide the odd one out in the 2-column layout.
+                <li key={a.id} className={`flex ${i === 8 ? "sm:max-xl:hidden" : ""} [&>article]:w-full`}>
+                  <ArticleCard article={a} variant="responsive" />
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <aside aria-label="और पढ़ें" className="grid content-start gap-6 md:grid-cols-2 lg:col-span-4 lg:grid-cols-1">
+            <MandiRatePanel articles={mandiRates} />
+            <EditorialPanel articles={editorials} />
+            <div className="md:col-span-2 lg:col-span-1">
+              <PrintEditionPromo />
+            </div>
+          </aside>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      <div className="mt-14 sm:mt-20">
+        <SuccessStories articles={successStories} />
+      </div>
+
+      {sections.length > 0 && (
+        <div className="mx-auto grid max-w-7xl gap-x-10 gap-y-14 px-4 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-2 lg:px-8">
+          {sections.map((section) => (
+            <CategoryBlock key={section.category.slug} section={section} />
+          ))}
         </div>
-      </main>
+      )}
+
+      <BackToTop />
+    </>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="mx-auto max-w-xl px-4 py-24 text-center">
+      <h1 className="font-display text-2xl font-bold">खबरें अभी उपलब्ध नहीं हैं</h1>
+      <p className="mt-3 text-muted">कृपया कुछ देर बाद फिर देखें।</p>
+      <a href={site.url} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-leaf-700 px-5 font-semibold text-white hover:bg-leaf-800">
+        krishakjagat.org पर पढ़ें
+      </a>
     </div>
   );
 }

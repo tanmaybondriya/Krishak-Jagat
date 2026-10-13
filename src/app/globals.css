@@ -1,26 +1,170 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+   Design tokens. Tailwind v4 turns these into utilities (bg-leaf-700, text-ink…).
+   leaf    = agricultural greens; leaf-700 is the current site's brand green.
+   harvest = golden wheat/sunlight accents; use 700+ for text on light surfaces.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-leaf-50: #f0f7f2;
+  --color-leaf-100: #dbeee2;
+  --color-leaf-200: #b6dcc5;
+  --color-leaf-300: #86c2a0;
+  --color-leaf-400: #4fa279;
+  --color-leaf-500: #2e8660;
+  --color-leaf-600: #1f7a55;
+  --color-leaf-700: #206b4d;
+  --color-leaf-800: #1a5540;
+  --color-leaf-900: #143f30;
+  --color-leaf-950: #0b261c;
+
+  --color-harvest-50: #fff9e8;
+  --color-harvest-100: #fdf0c4;
+  --color-harvest-200: #fbe08a;
+  --color-harvest-300: #f8cd4f;
+  --color-harvest-400: #f2b824;
+  --color-harvest-500: #dc9d0b;
+  --color-harvest-600: #b57a06;
+  --color-harvest-700: #8a5a09;
+  --color-harvest-800: #6e470e;
+
+  --color-paper: #faf8f2;
+  --color-ink: #16211b;
+  --color-muted: #56625b;
+  --color-line: #e7e3d8;
+  --color-line-strong: #d6d0c1;
+
+  --font-sans: var(--font-mukta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-noto-serif-devanagari), ui-serif, Georgia, serif;
+
+  --shadow-card: 0 1px 2px rgb(22 33 27 / 0.04), 0 4px 16px -6px rgb(22 33 27 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(22 33 27 / 0.05), 0 16px 32px -12px rgb(22 33 27 / 0.18);
+  --shadow-glass: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 8px 24px -12px rgb(11 38 28 / 0.25);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 8rem; /* keep anchor targets clear of the sticky header */
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Devanagari needs extra vertical room for matras; avoid cramped headlines. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-leaf-700);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  .on-dark :focus-visible {
+    outline-color: var(--color-harvest-300);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---------------------------------------------------------------------------
+   Glass surfaces: ONLY for navigation, search, floating controls, and a few
+   buttons. Article cards and body text stay solid. Opaque fallback first,
+   translucency only where backdrop-filter is supported.
+   --------------------------------------------------------------------------- */
+@layer components {
+  .glass {
+    background-color: rgb(255 255 255 / 0.94);
+    border-color: rgb(22 33 27 / 0.08);
+    box-shadow: var(--shadow-glass);
+  }
+
+  /* Denser glass for large panels (mobile menu) that sit over busy content. */
+  .glass-strong {
+    background-color: rgb(250 248 242 / 0.98);
+    border-color: rgb(22 33 27 / 0.08);
+  }
+
+  .glass-dark {
+    background-color: rgb(11 38 28 / 0.88);
+    border-color: rgb(255 255 255 / 0.16);
+    color: #fff;
+  }
+
+  @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .glass {
+      background-color: rgb(255 255 255 / 0.72);
+      -webkit-backdrop-filter: saturate(180%) blur(18px);
+      backdrop-filter: saturate(180%) blur(18px);
+    }
+
+    .glass-strong {
+      background-color: rgb(250 248 242 / 0.9);
+      -webkit-backdrop-filter: saturate(160%) blur(28px);
+      backdrop-filter: saturate(160%) blur(28px);
+    }
+
+    .glass-dark {
+      background-color: rgb(11 38 28 / 0.5);
+      -webkit-backdrop-filter: saturate(160%) blur(14px);
+      backdrop-filter: saturate(160%) blur(14px);
+    }
+  }
+
+  /* Horizontal scrollers (category rail, story carousels) without visible scrollbars. */
+  .scroll-row {
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .scroll-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Floating controls that appear once the reader scrolls past the first screen.
+     Browsers without scroll-driven animations simply show them all the time. */
+  @supports (animation-timeline: scroll()) {
+    .reveal-on-scroll {
+      animation: reveal-on-scroll linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 60vh;
+    }
+  }
+
+  /* Native <dialog> mobile menu. */
+  .menu-dialog::backdrop {
+    background: rgb(11 38 28 / 0.35);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes reveal-on-scroll {
+  0%,
+  60% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+    visibility: hidden;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+  }
 }
